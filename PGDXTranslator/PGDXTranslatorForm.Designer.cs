@@ -94,9 +94,11 @@
             // 
             this._InputLanguageComboBox.FormattingEnabled = true;
             this._InputLanguageComboBox.Location = new System.Drawing.Point(526, 65);
+            this._InputLanguageComboBox.Margin = new System.Windows.Forms.Padding(3, 3, 25, 3);
             this._InputLanguageComboBox.Name = "_InputLanguageComboBox";
             this._InputLanguageComboBox.Size = new System.Drawing.Size(203, 21);
             this._InputLanguageComboBox.TabIndex = 6;
+            this._InputLanguageComboBox.SelectedIndexChanged += new System.EventHandler(this.InputLanguageComboBox_SelectedIndexChanged);
             // 
             // _InputLanguageLabel
             // 
@@ -109,8 +111,9 @@
             // 
             // _TranslateButton
             // 
+            this._TranslateButton.Anchor = System.Windows.Forms.AnchorStyles.None;
             this._TranslateButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this._TranslateButton.Location = new System.Drawing.Point(356, 646);
+            this._TranslateButton.Location = new System.Drawing.Point(356, 740);
             this._TranslateButton.Name = "_TranslateButton";
             this._TranslateButton.Size = new System.Drawing.Size(106, 46);
             this._TranslateButton.TabIndex = 8;
@@ -120,9 +123,10 @@
             // _SettingsButton
             // 
             this._SettingsButton.Image = ((System.Drawing.Image)(resources.GetObject("_SettingsButton.Image")));
-            this._SettingsButton.Location = new System.Drawing.Point(242, 747);
+            this._SettingsButton.Location = new System.Drawing.Point(237, 820);
+            this._SettingsButton.Margin = new System.Windows.Forms.Padding(3, 40, 3, 20);
             this._SettingsButton.Name = "_SettingsButton";
-            this._SettingsButton.Size = new System.Drawing.Size(54, 46);
+            this._SettingsButton.Size = new System.Drawing.Size(75, 46);
             this._SettingsButton.TabIndex = 9;
             this._SettingsButton.UseVisualStyleBackColor = true;
             this._SettingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
@@ -130,7 +134,8 @@
             // _ExitButton
             // 
             this._ExitButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this._ExitButton.Location = new System.Drawing.Point(506, 747);
+            this._ExitButton.Location = new System.Drawing.Point(493, 820);
+            this._ExitButton.Margin = new System.Windows.Forms.Padding(3, 40, 3, 20);
             this._ExitButton.Name = "_ExitButton";
             this._ExitButton.Size = new System.Drawing.Size(75, 46);
             this._ExitButton.TabIndex = 10;
@@ -142,7 +147,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(857, 805);
+            this.AutoSize = true;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.ClientSize = new System.Drawing.Size(808, 878);
             this.Controls.Add(this._ExitButton);
             this.Controls.Add(this._SettingsButton);
             this.Controls.Add(this._TranslateButton);
