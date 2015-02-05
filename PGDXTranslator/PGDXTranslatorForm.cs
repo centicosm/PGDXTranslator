@@ -3,12 +3,8 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Web;
 using System.Windows.Forms;
 
 namespace PGDXTranslator {
@@ -255,17 +251,17 @@ namespace PGDXTranslator {
             // figure out the horizontal spacing of the check-boxes
             int maxStringSize = -1;
             Graphics g = this.CreateGraphics();
-            Font checkBoxFont = new Font("Microsoft Sans Serif", 8.25f);
-
-            for (int i = 0; i < _SupportedLanguages.Length; i++) {
-                SizeF stringSize = g.MeasureString(_SupportedLanguages[i].LanguageName + " (" + _SupportedLanguages[i].LanguageCode + ")", checkBoxFont);
-                int curSize = (int)(stringSize.Width + 1);
-                if (curSize > maxStringSize) {
-                    maxStringSize = curSize;
+            using (Font checkBoxFont = new Font("Microsoft Sans Serif", 8.25f)) 
+            {
+                for (int i = 0; i < _SupportedLanguages.Length; i++) {
+                    SizeF stringSize = g.MeasureString(_SupportedLanguages[i].LanguageName + " (" + _SupportedLanguages[i].LanguageCode + ")", checkBoxFont);
+                    int curSize = (int) (stringSize.Width + 1);
+                    if (curSize > maxStringSize) {
+                        maxStringSize = curSize;
+                    }
                 }
+                g.Dispose();
             }
-            g.Dispose();
-
 
             // now create the check-boxes
             for (int i = 0; i < _SupportedLanguages.Length; i++) {
@@ -326,6 +322,91 @@ namespace PGDXTranslator {
             }
         }
 
+
+
+        private void Translate() {
+            String inputFile = _InputFileTextBox.Text;
+            
+            if (inputFile.Length == 0) {
+                MessageBox.Show("Must select an input file to translate");
+                return;
+            }
+
+            String rootFileName = Path.GetFileNameWithoutExtension(inputFile);
+
+
+            // load all the lines to translate from the input file and store them in a list for easy access
+            List<String> lines = new List<String>();
+            try {
+                using (StreamReader sr = new StreamReader(inputFile)) 
+                {
+
+                    // try to read the API key from file
+                    while (!sr.EndOfStream) {
+                        String line = sr.ReadLine();
+                        line.TrimEnd();
+                        if (line.Length > 0) {
+                            lines.Add(line);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) {
+                MessageBox.Show("Could not open input file.");
+                return;
+            }
+
+            String outputDir = _OutputPathTextBox.Text;
+            if (outputDir.Length == 0) {
+                outputDir = @".\";
+            }
+            
+            foreach (String lang in _TranslationDestinationList) {
+
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(outputDir + rootFileName + "_" + lang + ".properties")) 
+                {
+                    foreach (String s in lines) {
+                        String[] fields = s.Split('=');
+                        if (fields.Length != 2) {
+                            MessageBox.Show("Error parsing line: " + s);
+                            return;
+                        }
+                        String toTranslate = Prepare_StringForTranslate(fields[1]);
+                        String translated = Translate_String(toTranslate, lang);
+                        file.WriteLine(fields[0] + "=" + translated);
+                    }
+                }
+            }
+            MessageBox.Show("Translation Finished");
+
+        }
+
+
+        private String Prepare_StringForTranslate(String s) {
+
+            return s;
+        }
+
+
+        // build our query and send it to the translate API
+        private String Translate_String(String text, String target) {
+            String requestUrl = "https://www.googleapis.com/language/translate/v2?key=" + _APIKey + "&source=" + _SelectedLangCode + "&target=" + target + "&q=";
+            requestUrl += HttpUtility.UrlEncode(text);
+            //Console.Write(requestUrl);
+            TranslateAPIResponse resp = Make_HTTPRequest(requestUrl);
+
+            if (resp != null) {
+
+                if (resp.DataSets.TranslatedText.Length == 0) return null;
+                return resp.DataSets.TranslatedText[0].Text;
+            }
+
+            return null;
+        }
+
+        private void TranslateButton_Click(object sender, EventArgs e) {
+            Translate();
+        }
 
 
     }

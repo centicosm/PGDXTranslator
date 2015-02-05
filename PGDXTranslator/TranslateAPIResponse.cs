@@ -15,8 +15,17 @@ namespace PGDXTranslator {
     public class APIData {
         [DataMember(Name = "languages")]
         public Language[] Languages { get; set; }
+
+        [DataMember(Name = "translations")]
+        public TranslationText[] TranslatedText { get; set; }
     }
 
+    [DataContract]
+    public class TranslationText {
+        [DataMember(Name = "translatedText")]
+        public String Text { get; set; }
+    }
+    
     [DataContract]
     public class Language {
         [DataMember(Name = "language")]
