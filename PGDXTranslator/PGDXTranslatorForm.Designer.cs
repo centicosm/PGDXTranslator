@@ -119,6 +119,7 @@
             this._TranslateButton.TabIndex = 8;
             this._TranslateButton.Text = "Translate";
             this._TranslateButton.UseVisualStyleBackColor = true;
+            this._TranslateButton.Click += new System.EventHandler(this.TranslateButton_Click);
             // 
             // _SettingsButton
             // 
