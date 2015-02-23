@@ -36,6 +36,7 @@
             this._SettingsButton = new System.Windows.Forms.Button();
             this._InputFileDialog = new System.Windows.Forms.OpenFileDialog();
             this._ExitButton = new System.Windows.Forms.Button();
+            this._BackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // _InputFileTextBox
@@ -144,6 +145,14 @@
             this._ExitButton.UseVisualStyleBackColor = true;
             this._ExitButton.Click += new System.EventHandler(this.ExitButton_Click);
             // 
+            // _BackgroundWorker
+            // 
+            this._BackgroundWorker.WorkerReportsProgress = true;
+            this._BackgroundWorker.WorkerSupportsCancellation = true;
+            this._BackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorker_DoWork);
+            this._BackgroundWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.BackgroundWorker_ProgressChanged);
+            this._BackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundWorker_RunWorkerCompleted);
+            // 
             // PGDXTranslatorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -185,6 +194,7 @@
         private System.Windows.Forms.Button _SettingsButton;
         private System.Windows.Forms.OpenFileDialog _InputFileDialog;
         private System.Windows.Forms.Button _ExitButton;
+        private System.ComponentModel.BackgroundWorker _BackgroundWorker;
     }
 }
 

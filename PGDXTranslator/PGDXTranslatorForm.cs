@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Web;
 using System.Windows.Forms;
@@ -13,11 +14,12 @@ namespace PGDXTranslator {
         private Boolean _ValidConfiguration = false;
         private String _APIKey;
 
+        private ProgressForm _ProgressForm;
         private Language[] _SupportedLanguages;
         private String _SelectedLangCode;
         private CheckBox[] _DestinationCheckbox = null;
         private List<String> _TranslationDestinationList;
-        
+        public event EventHandler<EventArgs> TranslateError;
 
         private class Item {
             public string Name;
@@ -325,60 +327,24 @@ namespace PGDXTranslator {
 
 
         private void Translate() {
-            String inputFile = _InputFileTextBox.Text;
-            
-            if (inputFile.Length == 0) {
-                MessageBox.Show("Must select an input file to translate");
-                return;
+
+            if (_BackgroundWorker.IsBusy != true) {
+                _ProgressForm = new ProgressForm("Translating");
+                _ProgressForm.StartPosition = this.StartPosition;
+                _ProgressForm.Canceled += new EventHandler<EventArgs>(CancelTranslate_Clicked);
+                _ProgressForm.Show();
+              _BackgroundWorker.RunWorkerAsync();
             }
+        }
 
-            String rootFileName = Path.GetFileNameWithoutExtension(inputFile);
 
-
-            // load all the lines to translate from the input file and store them in a list for easy access
-            List<String> lines = new List<String>();
-            try {
-                using (StreamReader sr = new StreamReader(inputFile)) 
-                {
-
-                    // try to read the API key from file
-                    while (!sr.EndOfStream) {
-                        String line = sr.ReadLine();
-                        line.TrimEnd();
-                        if (line.Length > 0) {
-                            lines.Add(line);
-                        }
-                    }
-                }
+        // This event handler cancels the backgroundworker, fired from Cancel button in AlertForm.
+        private void CancelTranslate_Clicked(object sender, EventArgs e) {
+            if (_BackgroundWorker.WorkerSupportsCancellation == true) {
+  
+                _BackgroundWorker.CancelAsync();
+                _ProgressForm.Close();
             }
-            catch (Exception ex) {
-                MessageBox.Show("Could not open input file.");
-                return;
-            }
-
-            String outputDir = _OutputPathTextBox.Text;
-            if (outputDir.Length == 0) {
-                outputDir = @".\";
-            }
-            
-            foreach (String lang in _TranslationDestinationList) {
-
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(outputDir + rootFileName + "_" + lang + ".properties")) 
-                {
-                    foreach (String s in lines) {
-                        String[] fields = s.Split('=');
-                        if (fields.Length != 2) {
-                            MessageBox.Show("Error parsing line: " + s);
-                            return;
-                        }
-                        String toTranslate = Prepare_StringForTranslate(fields[1]);
-                        String translated = Translate_String(toTranslate, lang);
-                        file.WriteLine(fields[0] + "=" + translated);
-                    }
-                }
-            }
-            MessageBox.Show("Translation Finished");
-
         }
 
 
@@ -406,6 +372,88 @@ namespace PGDXTranslator {
 
         private void TranslateButton_Click(object sender, EventArgs e) {
             Translate();
+        }
+
+
+        private void BackgroundWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e) {
+
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            try {
+                String inputFile = _InputFileTextBox.Text;
+
+                if (inputFile.Length == 0) {
+                    throw new Exception("Must select an input file to translate");
+                }
+
+                String rootFileName = Path.GetFileNameWithoutExtension(inputFile);
+
+                // load all the lines to translate from the input file and store them in a list for easy access
+                List<String> lines = new List<String>();
+                try {
+                    using (StreamReader sr = new StreamReader(inputFile)) {
+
+                        // try to read the API key from file
+                        while (!sr.EndOfStream) {
+                            String line = sr.ReadLine();
+                            line.TrimEnd();
+                            if (line.Length > 0) {
+                                lines.Add(line);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    throw new Exception("Could not open input file.");
+                }
+
+                String outputDir = _OutputPathTextBox.Text;
+                if (outputDir.Length == 0) {
+                    outputDir = @".\";
+                }
+                outputDir += "/";
+
+
+                foreach (String lang in _TranslationDestinationList) {
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(outputDir + rootFileName + "_" + lang + ".properties")) {
+                        foreach (String s in lines) {
+                            String[] fields = s.Split('=');
+                            if (fields.Length != 2) {
+                                throw new Exception("Error parsing line: " + s);
+                            }
+                            String toTranslate = Prepare_StringForTranslate(fields[1]);
+                            String translated = Translate_String(toTranslate, lang);
+                            file.WriteLine(fields[0] + "=" + translated);
+
+                            worker.ReportProgress(0);
+
+                            if (worker.CancellationPending == true) {
+                                e.Cancel = true;
+                                break;
+                            }
+
+                        }
+                    }
+                }
+                e.Result = "Completed";
+            }
+            catch (Exception ex) {
+                e.Result = ex.Message;
+            }
+        }
+
+        private void BackgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e) {
+            _ProgressForm.Tick();
+        }
+
+        private void BackgroundWorker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e) {
+            _ProgressForm.Close();
+            if (e.Cancelled == true) {
+                MessageBox.Show("Canceled");
+            }
+            else {
+                MessageBox.Show(e.Result.ToString());
+            }
         }
 
 
