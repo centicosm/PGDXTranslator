@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Web;
+using System.Text;
 using System.Windows.Forms;
 
 namespace PGDXTranslator {
@@ -325,7 +326,6 @@ namespace PGDXTranslator {
         }
 
 
-
         private void Translate() {
 
             if (_BackgroundWorker.IsBusy != true) {
@@ -349,7 +349,6 @@ namespace PGDXTranslator {
 
 
         private String Prepare_StringForTranslate(String s) {
-
             return s;
         }
 
@@ -415,7 +414,7 @@ namespace PGDXTranslator {
 
 
                 foreach (String lang in _TranslationDestinationList) {
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(outputDir + rootFileName + "_" + lang + ".properties")) {
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(File.Open(outputDir + rootFileName + "_" + lang + ".properties", FileMode.Create), Encoding.UTF8)) {
                         foreach (String s in lines) {
                             String[] fields = s.Split('=');
                             if (fields.Length != 2) {
@@ -423,6 +422,7 @@ namespace PGDXTranslator {
                             }
                             String toTranslate = Prepare_StringForTranslate(fields[1]);
                             String translated = Translate_String(toTranslate, lang);
+                            translated = HttpUtility.HtmlDecode(translated);
                             file.WriteLine(fields[0] + "=" + translated);
 
                             worker.ReportProgress(0);
@@ -431,7 +431,6 @@ namespace PGDXTranslator {
                                 e.Cancel = true;
                                 break;
                             }
-
                         }
                     }
                 }
@@ -442,9 +441,11 @@ namespace PGDXTranslator {
             }
         }
 
+
         private void BackgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e) {
             _ProgressForm.Tick();
         }
+
 
         private void BackgroundWorker_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e) {
             _ProgressForm.Close();
